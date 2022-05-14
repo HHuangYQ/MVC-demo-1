@@ -103,83 +103,9 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 
   // Override the current require with this new one
   return newRequire;
-})({"../../../.config/yarn/global/node_modules/parcel/src/builtins/bundle-url.js":[function(require,module,exports) {
-var bundleURL = null;
-function getBundleURLCached() {
-  if (!bundleURL) {
-    bundleURL = getBundleURL();
-  }
+})({"1AQo":[function(require,module,exports) {
 
-  return bundleURL;
-}
-
-function getBundleURL() {
-  // Attempt to find the URL of the current script and use that as the base URL
-  try {
-    throw new Error();
-  } catch (err) {
-    var matches = ('' + err.stack).match(/(https?|file|ftp):\/\/[^)\n]+/g);
-    if (matches) {
-      return getBaseURL(matches[0]);
-    }
-  }
-
-  return '/';
-}
-
-function getBaseURL(url) {
-  return ('' + url).replace(/^((?:https?|file|ftp):\/\/.+)\/[^/]+$/, '$1') + '/';
-}
-
-exports.getBundleURL = getBundleURLCached;
-exports.getBaseURL = getBaseURL;
-},{}],"../../../.config/yarn/global/node_modules/parcel/src/builtins/css-loader.js":[function(require,module,exports) {
-var bundle = require('./bundle-url');
-
-function updateLink(link) {
-  var newLink = link.cloneNode();
-  newLink.onload = function () {
-    link.remove();
-  };
-  newLink.href = link.href.split('?')[0] + '?' + Date.now();
-  link.parentNode.insertBefore(newLink, link.nextSibling);
-}
-
-var cssTimeout = null;
-function reloadCSS() {
-  if (cssTimeout) {
-    return;
-  }
-
-  cssTimeout = setTimeout(function () {
-    var links = document.querySelectorAll('link[rel="stylesheet"]');
-    for (var i = 0; i < links.length; i++) {
-      if (bundle.getBaseURL(links[i].href) === bundle.getBundleURL()) {
-        updateLink(links[i]);
-      }
-    }
-
-    cssTimeout = null;
-  }, 50);
-}
-
-module.exports = reloadCSS;
-},{"./bundle-url":"../../../.config/yarn/global/node_modules/parcel/src/builtins/bundle-url.js"}],"reset.css":[function(require,module,exports) {
-
-var reloadCSS = require('_css_loader');
-module.hot.dispose(reloadCSS);
-module.hot.accept(reloadCSS);
-},{"_css_loader":"../../../.config/yarn/global/node_modules/parcel/src/builtins/css-loader.js"}],"global.css":[function(require,module,exports) {
-
-var reloadCSS = require('_css_loader');
-module.hot.dispose(reloadCSS);
-module.hot.accept(reloadCSS);
-},{"_css_loader":"../../../.config/yarn/global/node_modules/parcel/src/builtins/css-loader.js"}],"app1.css":[function(require,module,exports) {
-
-var reloadCSS = require('_css_loader');
-module.hot.dispose(reloadCSS);
-module.hot.accept(reloadCSS);
-},{"_css_loader":"../../../.config/yarn/global/node_modules/parcel/src/builtins/css-loader.js"}],"../../../.config/yarn/global/node_modules/process/browser.js":[function(require,module,exports) {
+},{}],"yK1t":[function(require,module,exports) {
 
 // shim for using process in browser
 var process = module.exports = {};
@@ -366,7 +292,7 @@ process.chdir = function (dir) {
 process.umask = function () {
     return 0;
 };
-},{}],"../node_modules/jquery/dist/jquery.js":[function(require,module,exports) {
+},{}],"juYr":[function(require,module,exports) {
 var global = arguments[3];
 var process = require("process");
 var define;
@@ -11252,8 +11178,12 @@ if ( typeof noGlobal === "undefined" ) {
 return jQuery;
 } );
 
-},{"process":"../../../.config/yarn/global/node_modules/process/browser.js"}],"app1.js":[function(require,module,exports) {
+},{"process":"yK1t"}],"U+s5":[function(require,module,exports) {
 'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
 
 require('./app1.css');
 
@@ -11263,45 +11193,81 @@ var _jquery2 = _interopRequireDefault(_jquery);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var $button1 = (0, _jquery2.default)('#add1');
-var $button2 = (0, _jquery2.default)('#minus1');
-var $button3 = (0, _jquery2.default)('#mul2');
-var $button4 = (0, _jquery2.default)('#divide2');
-var $number = (0, _jquery2.default)('#number');
-var n = localStorage.getItem('n');
-$number.text(n || 100);
+var eventBus = (0, _jquery2.default)({ window: window });
+//数据相关 都放M
+var m = {
+    data: {
+        n: parseInt(localStorage.getItem('n'))
+    },
+    create: function create() {},
+    delete: function _delete() {},
+    update: function update(data) {
+        Object.assign(m.data, data);
+        eventBus.trigger('m:updated');
+        localStorage.setItem('n', m.data.n);
+    },
+    get: function get() {}
+};
+//视图相关都放V
+var v = {
+    el: null,
+    html: '\n<div>\n        <div class="output">\n            <span id="number">{{n}}</span>\n        </div>\n        <div class="actions">\n            <button id="add1">+1</button>\n            <button id="minus1">-1</button>\n            <button id="mul2">*2</button>\n            <button id="divide2">\xF72</button>\n        </div>\n    </div>\n',
+    init: function init(container) {
+        v.el = (0, _jquery2.default)(container);
+    },
+    render: function render(n) {
+        if (v.el.children.length != 0) v.el.empty();
+        (0, _jquery2.default)(v.html.replace('{{n}}', n)).appendTo(v.el);
+    }
+};
+//其他都C
+var c = {
+    init: function init(container) {
+        v.init(container);
+        v.render(m.data.n); //view = render(data)
+        c.autoBindEvents();
+        eventBus.on('m:updated', function () {
+            v.render(m.data.n);
+        });
+    },
 
-$button1.on('click', function () {
-    var n = parseInt($number.text());
-    n += 1;
-    localStorage.setItem('n', n);
-    $number.text(n);
-});
-$button2.on('click', function () {
-    var n = parseInt($number.text());
-    n -= 1;
-    localStorage.setItem('n', n);
-    $number.text(n);
-});
-$button3.on('click', function () {
-    var n = parseInt($number.text());
-    n *= 2;
-    localStorage.setItem('n', n);
-    $number.text(n);
-});
-$button4.on('click', function () {
-    var n = parseInt($number.text());
-    n /= 2;
-    localStorage.setItem('n', n);
-    $number.text(n);
-});
-},{"./app1.css":"app1.css","jquery":"../node_modules/jquery/dist/jquery.js"}],"app2.css":[function(require,module,exports) {
 
-var reloadCSS = require('_css_loader');
-module.hot.dispose(reloadCSS);
-module.hot.accept(reloadCSS);
-},{"_css_loader":"../../../.config/yarn/global/node_modules/parcel/src/builtins/css-loader.js"}],"app2.js":[function(require,module,exports) {
+    events: {
+        'click #add1': 'add',
+        'click #minus1': 'minus',
+        'click #mul2': 'mul',
+        'click #divide2': 'div'
+    },
+    add: function add() {
+        m.update({ n: m.data.n + 1 });
+    },
+    minus: function minus() {
+        m.update({ n: m.data.n - 1 });
+    },
+    mul: function mul() {
+        m.update({ n: m.data.n * 2 });
+    },
+    div: function div() {
+        m.update({ n: m.data.n / 2 });
+    },
+    autoBindEvents: function autoBindEvents() {
+        for (var key in c.events) {
+            var value = c[c.events[key]];
+            var spaceIndex = key.indexOf(' ');
+            var part1 = key.slice(0, spaceIndex);
+            var part2 = key.slice(spaceIndex + 1);
+            v.el.on(part1, part2, value);
+        }
+    }
+};
+//第一次渲染html
+exports.default = c;
+},{"./app1.css":"1AQo","jquery":"juYr"}],"vZ5o":[function(require,module,exports) {
 'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
 
 require('./app2.css');
 
@@ -11311,43 +11277,95 @@ var _jquery2 = _interopRequireDefault(_jquery);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var $tabBar = (0, _jquery2.default)('#app2 .tab-bar');
-var $tabContent = (0, _jquery2.default)('#app2 .tab-content');
+var eventBus = (0, _jquery2.default)({ window: window });
 
-$tabBar.on('click', 'li', function (e) {
-   var $li = (0, _jquery2.default)(e.currentTarget);
-   $li.addClass('selected').siblings().removeClass('selected');
-   var index = $li.index();
-   $tabContent.children().eq(index).addClass('active').siblings().removeClass('active');
-});
+var localKey = 'app2.index';
+var m = {
+    data: {
+        index: parseInt(localStorage.getItem(localKey)) || 0
+    },
+    create: function create() {},
+    delete: function _delete() {},
+    update: function update(data) {
+        Object.assign(m.data, data);
+        eventBus.trigger('m:updated');
+        localStorage.setItem('index', m.data.index);
+    },
+    get: function get() {}
+};
+var v = {
+    el: null,
+    html: function html(index) {
+        return '\n   <div>\n   <ol class="tab-bar">\n       <li class="' + (index === 0 ? 'selected' : '') + '"data-index=\'0\'><span>1111</span></li>\n       <li class="' + (index === 1 ? 'selected' : '') + '"data-index=\'1\'><span>22222</span></li>\n   </ol>\n   <ol class="tab-content">\n       <li class="' + (index === 0 ? 'active' : '') + '">\u5185\u5BB91</li>\n       <li class="' + (index === 1 ? 'active' : '') + '">\u5185\u5BB92</li>\n   </ol>\n</div>\n';
+    },
+    init: function init(container) {
+        v.el = (0, _jquery2.default)(container);
+    },
+    render: function render(index) {
+        if (v.el.children.length != 0) v.el.empty();
+        (0, _jquery2.default)(v.html(index)).appendTo(v.el);
+    }
+};
 
-$tabBar.children().eq(0).trigger('click');
-},{"./app2.css":"app2.css","jquery":"../node_modules/jquery/dist/jquery.js"}],"app3.css":[function(require,module,exports) {
+var c = {
+    init: function init(container) {
+        v.init(container);
+        v.render(m.data.index); //view = render(data)
+        c.autoBindEvents();
+        eventBus.on('m:updated', function () {
+            v.render(m.data.index);
+        });
+    },
 
-var reloadCSS = require('_css_loader');
-module.hot.dispose(reloadCSS);
-module.hot.accept(reloadCSS);
-},{"_css_loader":"../../../.config/yarn/global/node_modules/parcel/src/builtins/css-loader.js"}],"app3.js":[function(require,module,exports) {
-'use strict';
 
-var _jquery = require('jquery');
+    events: {
+        'click .tab-bar li': 'x'
+    },
+    x: function x(e) {
+        var index = parseInt(e.currentTarget.dataset.index);
+        m.update({ index: index });
+    },
+    autoBindEvents: function autoBindEvents() {
+        for (var key in c.events) {
+            var value = c[c.events[key]];
+            var spaceIndex = key.indexOf(' ');
+            var part1 = key.slice(0, spaceIndex);
+            var part2 = key.slice(spaceIndex + 1);
+            v.el.on(part1, part2, value);
+        }
+    }
+};
+
+exports.default = c;
+},{"./app2.css":"1AQo","jquery":"juYr"}],"y8lT":[function(require,module,exports) {
+"use strict";
+
+var _jquery = require("jquery");
 
 var _jquery2 = _interopRequireDefault(_jquery);
 
-require('./app3.css');
+require("./app3.css");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var $square = (0, _jquery2.default)('#app3 .square');
-$square.on('click', function () {
-    $square.toggleClass('active');
-});
-},{"jquery":"../node_modules/jquery/dist/jquery.js","./app3.css":"app3.css"}],"app4.css":[function(require,module,exports) {
+var html = "\n<section id=\"app3\">\n<div class=\"square\"></div>\n</section>\n";
+var $element = (0, _jquery2.default)(html).appendTo((0, _jquery2.default)('body>.page'));
+var $square = (0, _jquery2.default)("#app3 .square");
+var localKey = "app3.active";
+var active = localStorage.getItem(localKey) === "yes";
 
-var reloadCSS = require('_css_loader');
-module.hot.dispose(reloadCSS);
-module.hot.accept(reloadCSS);
-},{"_css_loader":"../../../.config/yarn/global/node_modules/parcel/src/builtins/css-loader.js"}],"app4.js":[function(require,module,exports) {
+$square.toggleClass("active", active);
+
+$square.on("click", function () {
+  if ($square.hasClass("active")) {
+    $square.removeClass("active");
+    localStorage.setItem(localKey, "no");
+  } else {
+    $square.addClass("active");
+    localStorage.setItem("app3.active", "yes");
+  }
+});
+},{"jquery":"juYr","./app3.css":"1AQo"}],"eWpN":[function(require,module,exports) {
 'use strict';
 
 var _jquery = require('jquery');
@@ -11358,6 +11376,9 @@ require('./app4.css');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+var html = '\n<section id="app4">\n        <div class="circle"></div>\n    </section>\n';
+var $element = (0, _jquery2.default)(html).appendTo((0, _jquery2.default)('body>.page'));
+
 var $circle = (0, _jquery2.default)('#app4 .circle');
 
 $circle.on('mouseenter', function () {
@@ -11365,189 +11386,28 @@ $circle.on('mouseenter', function () {
 }).on('mouseleave', function () {
     $circle.removeClass('active');
 });
-},{"jquery":"../node_modules/jquery/dist/jquery.js","./app4.css":"app4.css"}],"main.js":[function(require,module,exports) {
-'use strict';
+},{"jquery":"juYr","./app4.css":"1AQo"}],"epB2":[function(require,module,exports) {
+"use strict";
 
-require('./reset.css');
+require("./reset.css");
 
-require('./global.css');
+require("./global.css");
 
-require('./app1.js');
+var _app = require("./app1.js");
 
-require('./app2.js');
+var _app2 = _interopRequireDefault(_app);
 
-require('./app3.js');
+var _app3 = require("./app2.js");
 
-require('./app4.js');
-},{"./reset.css":"reset.css","./global.css":"global.css","./app1.js":"app1.js","./app2.js":"app2.js","./app3.js":"app3.js","./app4.js":"app4.js"}],"../../../.config/yarn/global/node_modules/parcel/src/builtins/hmr-runtime.js":[function(require,module,exports) {
-var global = arguments[3];
-var OVERLAY_ID = '__parcel__error__overlay__';
+var _app4 = _interopRequireDefault(_app3);
 
-var OldModule = module.bundle.Module;
+require("./app3.js");
 
-function Module(moduleName) {
-  OldModule.call(this, moduleName);
-  this.hot = {
-    data: module.bundle.hotData,
-    _acceptCallbacks: [],
-    _disposeCallbacks: [],
-    accept: function (fn) {
-      this._acceptCallbacks.push(fn || function () {});
-    },
-    dispose: function (fn) {
-      this._disposeCallbacks.push(fn);
-    }
-  };
+require("./app4.js");
 
-  module.bundle.hotData = null;
-}
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-module.bundle.Module = Module;
-
-var parent = module.bundle.parent;
-if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
-  var hostname = '' || location.hostname;
-  var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + '62156' + '/');
-  ws.onmessage = function (event) {
-    var data = JSON.parse(event.data);
-
-    if (data.type === 'update') {
-      console.clear();
-
-      data.assets.forEach(function (asset) {
-        hmrApply(global.parcelRequire, asset);
-      });
-
-      data.assets.forEach(function (asset) {
-        if (!asset.isNew) {
-          hmrAccept(global.parcelRequire, asset.id);
-        }
-      });
-    }
-
-    if (data.type === 'reload') {
-      ws.close();
-      ws.onclose = function () {
-        location.reload();
-      };
-    }
-
-    if (data.type === 'error-resolved') {
-      console.log('[parcel] ✨ Error resolved');
-
-      removeErrorOverlay();
-    }
-
-    if (data.type === 'error') {
-      console.error('[parcel] 🚨  ' + data.error.message + '\n' + data.error.stack);
-
-      removeErrorOverlay();
-
-      var overlay = createErrorOverlay(data);
-      document.body.appendChild(overlay);
-    }
-  };
-}
-
-function removeErrorOverlay() {
-  var overlay = document.getElementById(OVERLAY_ID);
-  if (overlay) {
-    overlay.remove();
-  }
-}
-
-function createErrorOverlay(data) {
-  var overlay = document.createElement('div');
-  overlay.id = OVERLAY_ID;
-
-  // html encode message and stack trace
-  var message = document.createElement('div');
-  var stackTrace = document.createElement('pre');
-  message.innerText = data.error.message;
-  stackTrace.innerText = data.error.stack;
-
-  overlay.innerHTML = '<div style="background: black; font-size: 16px; color: white; position: fixed; height: 100%; width: 100%; top: 0px; left: 0px; padding: 30px; opacity: 0.85; font-family: Menlo, Consolas, monospace; z-index: 9999;">' + '<span style="background: red; padding: 2px 4px; border-radius: 2px;">ERROR</span>' + '<span style="top: 2px; margin-left: 5px; position: relative;">🚨</span>' + '<div style="font-size: 18px; font-weight: bold; margin-top: 20px;">' + message.innerHTML + '</div>' + '<pre>' + stackTrace.innerHTML + '</pre>' + '</div>';
-
-  return overlay;
-}
-
-function getParents(bundle, id) {
-  var modules = bundle.modules;
-  if (!modules) {
-    return [];
-  }
-
-  var parents = [];
-  var k, d, dep;
-
-  for (k in modules) {
-    for (d in modules[k][1]) {
-      dep = modules[k][1][d];
-      if (dep === id || Array.isArray(dep) && dep[dep.length - 1] === id) {
-        parents.push(k);
-      }
-    }
-  }
-
-  if (bundle.parent) {
-    parents = parents.concat(getParents(bundle.parent, id));
-  }
-
-  return parents;
-}
-
-function hmrApply(bundle, asset) {
-  var modules = bundle.modules;
-  if (!modules) {
-    return;
-  }
-
-  if (modules[asset.id] || !bundle.parent) {
-    var fn = new Function('require', 'module', 'exports', asset.generated.js);
-    asset.isNew = !modules[asset.id];
-    modules[asset.id] = [fn, asset.deps];
-  } else if (bundle.parent) {
-    hmrApply(bundle.parent, asset);
-  }
-}
-
-function hmrAccept(bundle, id) {
-  var modules = bundle.modules;
-  if (!modules) {
-    return;
-  }
-
-  if (!modules[id] && bundle.parent) {
-    return hmrAccept(bundle.parent, id);
-  }
-
-  var cached = bundle.cache[id];
-  bundle.hotData = {};
-  if (cached) {
-    cached.hot.data = bundle.hotData;
-  }
-
-  if (cached && cached.hot && cached.hot._disposeCallbacks.length) {
-    cached.hot._disposeCallbacks.forEach(function (cb) {
-      cb(bundle.hotData);
-    });
-  }
-
-  delete bundle.cache[id];
-  bundle(id);
-
-  cached = bundle.cache[id];
-  if (cached && cached.hot && cached.hot._acceptCallbacks.length) {
-    cached.hot._acceptCallbacks.forEach(function (cb) {
-      cb();
-    });
-    return true;
-  }
-
-  return getParents(global.parcelRequire, id).some(function (id) {
-    return hmrAccept(global.parcelRequire, id);
-  });
-}
-},{}]},{},["../../../.config/yarn/global/node_modules/parcel/src/builtins/hmr-runtime.js","main.js"], null)
-//# sourceMappingURL=/main.7b5095a6.map
+_app2.default.init('#app1');
+_app4.default.init('#app2');
+},{"./reset.css":"1AQo","./global.css":"1AQo","./app1.js":"U+s5","./app2.js":"vZ5o","./app3.js":"y8lT","./app4.js":"eWpN"}]},{},["epB2"], null)
+//# sourceMappingURL=main.20b26bfc.map

@@ -13,7 +13,7 @@ ol,
 ul {
   list-style: none;
 }
-body{
+ body{
     overflow: hidden;
 }
 body> .page{
